@@ -1,0 +1,6 @@
+[submodule "backend-project-template"]
+	path = backend-project-template
+	url = git@github.com:pricarvalho/backend-project-template.git
+[submodule "frontend-project-template"]
+	path = frontend-project-template
+	url = git@github.com:pricarvalho/frontend-project-template.git
