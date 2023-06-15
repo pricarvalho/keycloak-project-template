@@ -13,20 +13,21 @@ restart: stop start
 # docker:
 # 	@./mvnw clean package -DskipTests
 
-compile:
-	@echo "Compiling backend-project-template"
-    ifeq ($(PROJECT_NAME), backend-project-template)
-		@./mvnw clean package -DskipTests
-    else ifeq ($(PROJECT_NAME), frontend-project-template)
-		@cd ../backend-project-template/ && ./mvnw clean package -DskipTests
-    else
-		@cd backend-project-template/ && ./mvnw clean package -DskipTests
-    endif
+run-backend:
+	@cd backend-project-template && ./mvnw spring-boot:run
 
-run:
-	@./mvnw spring-boot:run
+run-frontend:
+	@cd frontend-project-template && npm start
 
-start:
+setup:
+	-$(MAKE) clean
+	$(MAKE) create-network
+	$(MAKE) create-containers
+	$(MAKE) install-backend
+	$(MAKE) install-frontend
+
+#DOCKER
+create-containers:
 	@echo "Starting containers..."
 	@echo "App version: $(APP_VERSION)"
 	@APP_VERSION=$(APP_VERSION) docker-compose -f ${DOCKER_COMPOSE_FILE_PATH} up -d
@@ -51,24 +52,15 @@ soft-clean: stop
 status:
 	@docker-compose -f ${DOCKER_COMPOSE_FILE_PATH} ps
 
-generate-properties:
+#INSTALLING APPLICATIONS
+compile-backend:
+	@cd backend-project-template/ && ./mvnw clean package -DskipTests
+
+install-backend: compile-backend 
 	@echo "Generating 'application.properties'"
-	@if [ "$(PROJECT_NAME)" = "backend-project-template" ]; then \
-		rm src/main/resources/application.properties && \
-		cp -n src/main/resources/application.properties.sample src/main/resources/application.properties; \
-	elif [ "$(PROJECT_NAME)" = "frontend-project-template" ]; then \
-		cd ../backend-project-template/ && \
-		rm src/main/resources/application.properties && \
-		cp -n src/main/resources/application.properties.sample src/main/resources/application.properties; \
-	else \
 		cd backend-project-template/ && \
 		rm src/main/resources/application.properties && \
 		cp -n src/main/resources/application.properties.sample src/main/resources/application.properties; \
-	fi;
 
-setup:
-	-$(MAKE) clean
-	$(MAKE) create-network
-	$(MAKE) generate-properties
-	$(MAKE) start
-	$(MAKE) compile
+install-frontend:
+	@cd frontend-project-template && rm -rf node_modules && npm install
